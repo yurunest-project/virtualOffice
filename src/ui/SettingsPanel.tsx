@@ -8,7 +8,6 @@ import {
   checkShortcutsAvailable,
   testFocusShortcut,
 } from "../services/focusService";
-import { updateGameLayout } from "../game/createGame";
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -23,13 +22,6 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
   async function verifyShortcuts() {
     const ok = await checkShortcutsAvailable();
     setShortcutsOk(ok);
-  }
-
-  function applyLayout() {
-    updateGameLayout({
-      layoutY: 0.04,
-      layoutHeight: 0.92,
-    });
   }
 
   function handleBgmPresetChange(room: RoomId, preset: BgmPresetId) {
@@ -75,38 +67,19 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           </p>
         </section>
 
+        {isTauri() && (
         <section>
           <h3>表示</h3>
-          <label className="setting-row">
-            <span>オフィス高さ</span>
+          <label className="setting-row checkbox">
             <input
-              type="range"
-              min={0.25}
-              max={0.55}
-              step={0.05}
-              value={settings.officeLayoutHeight}
-              onChange={(e) => {
-                settings.setOfficeLayout(
-                  settings.officeLayoutY,
-                  parseFloat(e.target.value),
-                );
-              }}
-              onMouseUp={applyLayout}
-              onTouchEnd={applyLayout}
+              type="checkbox"
+              checked={settings.showOnStartup}
+              onChange={(e) => settings.setShowOnStartup(e.target.checked)}
             />
-            <span>{Math.round(settings.officeLayoutHeight * 100)}%</span>
+            <span>起動時に表示</span>
           </label>
-          {isTauri() && (
-            <label className="setting-row checkbox">
-              <input
-                type="checkbox"
-                checked={settings.showOnStartup}
-                onChange={(e) => settings.setShowOnStartup(e.target.checked)}
-              />
-              <span>起動時に表示</span>
-            </label>
-          )}
         </section>
+        )}
 
         <section>
           <h3>BGM</h3>

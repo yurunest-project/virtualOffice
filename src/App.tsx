@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { createGame, destroyGame, getGame, handleScreenClick, refreshOfficeTheme } from "./game/createGame";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createGame, destroyGame, getGame, handleScreenClick, refreshGameLayout, refreshOfficeTheme } from "./game/createGame";
 import { updatePanelHitbox } from "./clickthrough/hitbox";
 import { useSettingsStore } from "./store/settingsStore";
 import { useRoomStateStore } from "./store/roomStateStore";
@@ -19,7 +19,7 @@ import { FocusSetup } from "./ui/FocusSetup";
 import "./App.css";
 
 const INTERACTIVE_SELECTOR =
-  ".panels-container, .panels-drag-handle, .panel, .status-bar, .daily-stats-panel, .time-history-popover, .setup-overlay, .settings-overlay, button, input, textarea, select, .hint-bar";
+  ".app-toolbar, .app-sidebar, .panels-container, .panels-drag-handle, .panel, .status-bar, .daily-stats-panel, .time-history-popover, .setup-overlay, .settings-overlay, button, input, textarea, select";
 
 function shouldIgnoreClick(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -67,8 +67,8 @@ function App() {
       }
 
       createGame(gameRef.current, {
-        layoutY: 0.04,
-        layoutHeight: 0.92,
+        layoutY: 0.02,
+        layoutHeight: 0.96,
       });
       ambientManager.setRoom("work");
     };
@@ -107,6 +107,12 @@ function App() {
     if (!game) return;
     if (officeMapVisible) {
       game.scene.resume("VirtualOfficeScene");
+      // After display:none, the container needs a layout pass before Phaser can resize.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          refreshGameLayout();
+        });
+      });
     } else {
       game.scene.pause("VirtualOfficeScene");
     }
@@ -195,16 +201,22 @@ function App() {
     suppressAvatarClickUntil.current = Date.now() + 400;
   }, []);
 
+  const panelsFloating = Boolean(settings.panelsPosition);
+  const showPanels = settings.panelsVisible && !settings.panelsPopout;
+  const stripRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!officeMapVisible) return;
+    const el = stripRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => refreshGameLayout());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [officeMapVisible, showPanels]);
+
   return (
     <div
       className={`app-root${movementEnabled ? "" : " app-root-inactive"}`}
-      style={
-        {
-          "--office-height": officeMapVisible
-            ? `${settings.officeLayoutHeight * 100}vh`
-            : "0vh",
-        } as CSSProperties
-      }
       onClick={onAppClick}
     >
       <div className="workspace-backdrop" aria-hidden="true" />
@@ -217,13 +229,42 @@ function App() {
         <SettingsPanel onClose={() => setShowSettings(false)} />
       )}
 
-      <div ref={statusRef}>
+      <header className="app-toolbar" ref={statusRef}>
         <StatusBar windowActive={windowActive} />
+      </header>
+
+      <div className="app-body">
+        <div className="workspace-main">
+          <DailyStatsPanel />
+
+          <div
+            ref={stripRef}
+            className={`workspace-strip${officeMapVisible ? "" : " workspace-strip-hidden"}`}
+          >
+            <div
+              ref={gameRef}
+              className={`game-container${officeMapVisible ? "" : " game-container-hidden"}`}
+            />
+          </div>
+        </div>
+
+        {showPanels && (
+          <div
+            className={`panel-slot${panelsFloating ? " panel-slot-empty" : ""}`}
+            aria-hidden={panelsFloating}
+          >
+            {!panelsFloating && (
+              <WorkspacePanel
+                containerRef={panelsRef}
+                onDragEnd={onPanelDragEnd}
+                docked
+              />
+            )}
+          </div>
+        )}
       </div>
 
-      <DailyStatsPanel />
-
-      {settings.panelsVisible && !settings.panelsPopout && (
+      {showPanels && panelsFloating && (
         <WorkspacePanel
           containerRef={panelsRef}
           onDragEnd={onPanelDragEnd}
@@ -237,19 +278,6 @@ function App() {
           <NotesPanel />
         </PanelPopout>
       )}
-
-      <div
-        ref={gameRef}
-        className={`game-container${officeMapVisible ? "" : " game-container-hidden"}`}
-      />
-
-      <div className="hint-bar">
-        {movementEnabled
-          ? "クリックで移動 · Tab: パネル · Esc: 設定"
-          : !officeMapVisible
-            ? "ステータスバーから場所変更 · Tab: パネル · Esc: 設定"
-            : "タブが非アクティブ · BGM/モードは継続"}
-      </div>
     </div>
   );
 }

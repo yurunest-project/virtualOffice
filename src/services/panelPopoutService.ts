@@ -1,5 +1,5 @@
 const PANEL_WIDTH = 320;
-const PANEL_HEIGHT = 540;
+const PANEL_HEIGHT = 720;
 
 export type PopoutMode = "pip" | "popup";
 
@@ -28,23 +28,40 @@ function setupPopoutDocument(targetWindow: Window): HTMLElement {
     html, body {
       margin: 0;
       padding: 8px;
+      height: 100%;
+      box-sizing: border-box;
       background: var(--bg-deep, #241c18);
       color: var(--text, #faf3ea);
       font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
         system-ui, -apple-system, "Segoe UI", sans-serif;
       user-select: none;
       overflow-x: hidden;
+      overflow-y: auto;
+    }
+    #popout-root {
+      min-height: 100%;
     }
     .panels-container {
       position: static !important;
       left: auto !important;
       top: auto !important;
       right: auto !important;
-      max-width: 100% !important;
+      max-height: none !important;
+      height: auto !important;
+      width: 100% !important;
       z-index: auto !important;
+      overflow: visible !important;
     }
     .panels-drag-handle { display: none !important; }
     .panel { max-width: 100%; }
+    .task-list {
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .notes-panel textarea {
+      min-height: 160px;
+      width: 100%;
+    }
     .panels-container input,
     .panels-container textarea {
       user-select: text;

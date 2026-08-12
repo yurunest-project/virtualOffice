@@ -23,6 +23,7 @@ export interface AppSettings {
   panelsPopout: boolean;
   panelPopoutPosition: { x: number; y: number } | null;
   colorMode: ColorMode;
+  layoutVersion: number;
 }
 
 export type WorkspacePanelTab = "pomodoro" | "task" | "notes";
@@ -66,6 +67,7 @@ export const useSettingsStore = create<SettingsStore>()(
       panelsPopout: false,
       panelPopoutPosition: null,
       colorMode: "warm" as ColorMode,
+      layoutVersion: 3,
 
       setBgmEnabled: (enabled) => set({ bgmEnabled: enabled }),
       setBgmVolume: (volume) => set({ bgmVolume: volume }),
@@ -122,8 +124,12 @@ export const useSettingsStore = create<SettingsStore>()(
         ...saved,
         bgmDefaultsVersion: 5,
         roomBgmPresets,
-        panelsPosition: saved?.panelsPosition ?? null,
         colorMode: saved?.colorMode === "cool" ? "cool" : "warm",
+        layoutVersion: 3,
+        panelsPosition:
+          (saved?.layoutVersion ?? 0) >= 3
+            ? (saved?.panelsPosition ?? null)
+            : null,
       };
     } },
   ),

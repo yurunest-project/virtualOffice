@@ -19,7 +19,7 @@ export function PanelPopout({ children, onClose }: PanelPopoutProps) {
   if (!root) return null;
 
   return createPortal(
-    <div className="panels-container" style={{ position: "static" }}>
+    <div className="panels-container panels-popout" style={{ position: "static" }}>
       {children}
     </div>,
     root,

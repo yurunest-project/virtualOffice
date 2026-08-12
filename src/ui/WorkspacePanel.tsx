@@ -8,6 +8,7 @@ import { NotesPanel } from "./NotesPanel";
 interface WorkspacePanelProps {
   containerRef?: RefObject<HTMLDivElement | null>;
   onDragEnd?: () => void;
+  docked?: boolean;
 }
 
 interface DragState {
@@ -29,7 +30,11 @@ function clampPosition(x: number, y: number) {
   };
 }
 
-export function WorkspacePanel({ containerRef, onDragEnd }: WorkspacePanelProps) {
+export function WorkspacePanel({
+  containerRef,
+  onDragEnd,
+  docked = false,
+}: WorkspacePanelProps) {
   const panelsPosition = useSettingsStore((s) => s.panelsPosition);
   const setPanelsPosition = useSettingsStore((s) => s.setPanelsPosition);
   const onDragEndRef = useRef(onDragEnd);
@@ -37,6 +42,10 @@ export function WorkspacePanel({ containerRef, onDragEnd }: WorkspacePanelProps)
 
   const dragRef = useRef<DragState | null>(null);
   const [dragging, setDragging] = useState(false);
+
+  function dockPanels() {
+    setPanelsPosition(null);
+  }
 
   useEffect(() => {
     function onResize() {
@@ -113,31 +122,52 @@ export function WorkspacePanel({ containerRef, onDragEnd }: WorkspacePanelProps)
     e.stopPropagation();
   }
 
-  const positionStyle = panelsPosition
-    ? {
-        left: panelsPosition.x,
-        top: panelsPosition.y,
-        right: "auto" as const,
-        bottom: "auto" as const,
-      }
-    : undefined;
+  const isFloating = !docked && Boolean(panelsPosition);
+  const positionStyle =
+    isFloating && panelsPosition
+      ? {
+          left: panelsPosition.x,
+          top: panelsPosition.y,
+          right: "auto" as const,
+          bottom: "auto" as const,
+        }
+      : undefined;
 
   return (
     <div
       ref={containerRef}
-      className={`panels-container${dragging ? " panels-container-dragging" : ""}`}
+      className={`panels-container${dragging ? " panels-container-dragging" : ""}${isFloating ? " panels-container-floating" : ""}`}
       style={positionStyle}
       onClick={stopPanelClickBubble}
     >
       <div
         className="panels-drag-handle"
         onMouseDown={startDrag}
-        title="ドラッグで移動"
+        onDoubleClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dockPanels();
+        }}
+        title="ドラッグで移動 · ダブルクリックまたは「固定」で下に戻す"
       >
         <span className="panels-drag-label">パネル</span>
-        <span className="panels-drag-icon" aria-hidden="true">
-          ⠿
-        </span>
+        <div className="panels-drag-actions">
+          {isFloating && (
+            <button
+              type="button"
+              className="panels-dock-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                dockPanels();
+              }}
+            >
+              固定
+            </button>
+          )}
+          <span className="panels-drag-icon" aria-hidden="true">
+            ⠿
+          </span>
+        </div>
       </div>
       <PomodoroPanel />
       <TaskPanel />

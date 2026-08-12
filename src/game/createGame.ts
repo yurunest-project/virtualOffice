@@ -5,6 +5,7 @@ import { setHitbox, removeHitbox } from "../clickthrough/hitbox";
 
 let game: Phaser.Game | null = null;
 let resizeHandler: (() => void) | null = null;
+let parentObserver: ResizeObserver | null = null;
 let gameParent: HTMLElement | null = null;
 
 function applyCanvasTransparency(gameInstance: Phaser.Game): void {
@@ -75,14 +76,20 @@ export function createGame(
 
   resizeHandler = () => {
     if (game && gameParent) {
+      const width = gameParent.clientWidth;
+      const height = gameParent.clientHeight;
+      // Hidden map container reports 0×0 — skip until shown again.
+      if (width < 8 || height < 8) return;
       game.scale.resize(
-        Math.max(gameParent.clientWidth, 320),
-        Math.max(gameParent.clientHeight, 180),
+        Math.max(width, 320),
+        Math.max(height, 180),
       );
       applyCanvasTransparency(game);
     }
   };
   window.addEventListener("resize", resizeHandler);
+  parentObserver = new ResizeObserver(resizeHandler);
+  parentObserver.observe(parent);
 
   return game;
 }
@@ -106,6 +113,10 @@ export function updateGameLayout(layoutConfig: OfficeLayoutConfig): void {
   scene.scene.restart();
 }
 
+export function refreshGameLayout(): void {
+  resizeHandler?.();
+}
+
 export function refreshOfficeTheme(): void {
   getScene()?.applyColorMode();
 }
@@ -115,6 +126,8 @@ export function destroyGame(): void {
     window.removeEventListener("resize", resizeHandler);
     resizeHandler = null;
   }
+  parentObserver?.disconnect();
+  parentObserver = null;
   if (game) {
     removeHitbox("character");
     removeHitbox("office-map");

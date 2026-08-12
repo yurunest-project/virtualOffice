@@ -39,6 +39,7 @@ export class VirtualOfficeScene extends Phaser.Scene {
 
   create(): void {
     this.rebuildOffice();
+    this.scale.on("resize", this.applyColorMode, this);
   }
 
   goToRoom(room: RoomId): void {
