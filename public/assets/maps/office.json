@@ -1,0 +1,26 @@
+{
+  "name": "virtual-office",
+  "version": "0.1.0",
+  "description": "Solo virtual office desktop overlay",
+  "rooms": [
+    {
+      "id": "work",
+      "label": "仕事場",
+      "position": { "x": 0.02, "y": 0.15, "width": 0.3, "height": 0.75 }
+    },
+    {
+      "id": "study",
+      "label": "自習室",
+      "position": { "x": 0.35, "y": 0.15, "width": 0.3, "height": 0.75 }
+    },
+    {
+      "id": "break",
+      "label": "休憩所",
+      "position": { "x": 0.68, "y": 0.15, "width": 0.3, "height": 0.75 }
+    }
+  ],
+  "sprites": {
+    "character": "sprites/character.png",
+    "tileset": "sprites/tileset.png"
+  }
+}
