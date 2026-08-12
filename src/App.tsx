@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { createGame, destroyGame, getGame, handleScreenClick } from "./game/createGame";
+import { createGame, destroyGame, getGame, handleScreenClick, refreshOfficeTheme } from "./game/createGame";
 import { updatePanelHitbox } from "./clickthrough/hitbox";
 import { useSettingsStore } from "./store/settingsStore";
 import { useRoomStateStore } from "./store/roomStateStore";
 import { useTimeLogStore } from "./store/timeLogStore";
 import { ambientManager } from "./services/ambientService";
+import { applyColorModeToDocument } from "./theme/colorMode";
+import { getPopoutRoot } from "./services/panelPopoutService";
 import { WorkspacePanel } from "./ui/WorkspacePanel";
 import { PanelPopout } from "./ui/PanelPopout";
 import { PomodoroPanel } from "./ui/PomodoroPanel";
@@ -42,6 +44,15 @@ function App() {
   const officeMapVisible = settings.officeMapVisible;
   const forceInteractive = showSetup || showSettings;
   const movementEnabled = windowActive && !forceInteractive && officeMapVisible;
+
+  useEffect(() => {
+    applyColorModeToDocument(settings.colorMode);
+    refreshOfficeTheme();
+    const popoutDoc = getPopoutRoot()?.ownerDocument;
+    if (popoutDoc) {
+      applyColorModeToDocument(settings.colorMode, popoutDoc);
+    }
+  }, [settings.colorMode]);
 
   useEffect(() => {
     if (!gameRef.current) return;
@@ -160,12 +171,17 @@ function App() {
         settings.setPanelsVisible(!settings.panelsVisible);
       }
       if (e.key === "Escape") {
+        if (showSetup) {
+          useSettingsStore.getState().setWelcomeDismissed(true);
+          setShowSetup(false);
+          return;
+        }
         setShowSettings((v) => !v);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [settings.panelsVisible, settings.setPanelsVisible]);
+  }, [showSetup, settings.panelsVisible, settings.setPanelsVisible]);
 
   function onAppClick(e: React.MouseEvent<HTMLDivElement>) {
     if (Date.now() < suppressAvatarClickUntil.current) return;

@@ -4,16 +4,24 @@ const WALK_SPEED = 175;
 
 export class Character {
   public sprite: Phaser.GameObjects.Container;
+  private body: Phaser.GameObjects.Ellipse;
+  private head: Phaser.GameObjects.Arc;
   private directionIndicator: Phaser.GameObjects.Triangle;
   private target: Phaser.Math.Vector2 | null = null;
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
-    const shadow = scene.add.ellipse(0, 14, 28, 10, 0x000000, 0.25);
-    const body = scene.add.ellipse(0, 0, 24, 32, 0xff6b6b, 1);
-    body.setStrokeStyle(2, 0xffffff, 0.9);
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    bodyColor = 0xe8a87c,
+    headColor = 0xffe4cc,
+  ) {
+    const shadow = scene.add.ellipse(0, 14, 28, 10, 0x3a2a20, 0.22);
+    this.body = scene.add.ellipse(0, 0, 24, 32, bodyColor, 1);
+    this.body.setStrokeStyle(2, 0xfff8f0, 0.7);
 
-    const head = scene.add.circle(0, -18, 10, 0xffccaa, 1);
-    head.setStrokeStyle(1, 0xffffff, 0.8);
+    this.head = scene.add.circle(0, -18, 10, headColor, 1);
+    this.head.setStrokeStyle(1, 0xfff8f0, 0.65);
 
     this.directionIndicator = scene.add.triangle(
       0,
@@ -30,11 +38,16 @@ export class Character {
 
     this.sprite = scene.add.container(x, y, [
       shadow,
-      body,
-      head,
+      this.body,
+      this.head,
       this.directionIndicator,
     ]);
     this.sprite.setDepth(100);
+  }
+
+  setPalette(bodyColor: number, headColor: number): void {
+    this.body.setFillStyle(bodyColor);
+    this.head.setFillStyle(headColor);
   }
 
   setPosition(x: number, y: number): void {

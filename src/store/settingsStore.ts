@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { RoomId } from "./roomStore";
 import { BgmPresetId, DEFAULT_ROOM_BGM } from "../services/bgmPresets";
+import { ColorMode } from "../theme/colorMode";
 
 export interface AppSettings {
   bgmEnabled: boolean;
@@ -21,6 +22,7 @@ export interface AppSettings {
   panelsPosition: { x: number; y: number } | null;
   panelsPopout: boolean;
   panelPopoutPosition: { x: number; y: number } | null;
+  colorMode: ColorMode;
 }
 
 export type WorkspacePanelTab = "pomodoro" | "task" | "notes";
@@ -40,6 +42,7 @@ interface SettingsStore extends AppSettings {
   setPanelsPosition: (position: { x: number; y: number } | null) => void;
   setPanelsPopout: (popout: boolean) => void;
   setPanelPopoutPosition: (position: { x: number; y: number } | null) => void;
+  setColorMode: (mode: ColorMode) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -62,6 +65,7 @@ export const useSettingsStore = create<SettingsStore>()(
       panelsPosition: null,
       panelsPopout: false,
       panelPopoutPosition: null,
+      colorMode: "warm" as ColorMode,
 
       setBgmEnabled: (enabled) => set({ bgmEnabled: enabled }),
       setBgmVolume: (volume) => set({ bgmVolume: volume }),
@@ -84,6 +88,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setPanelsPosition: (position) => set({ panelsPosition: position }),
       setPanelsPopout: (popout) => set({ panelsPopout: popout }),
       setPanelPopoutPosition: (position) => set({ panelPopoutPosition: position }),
+      setColorMode: (mode) => set({ colorMode: mode }),
     }),
     { name: "virtual-office-settings", merge: (persisted, current) => {
       const saved = persisted as Partial<AppSettings> | undefined;
@@ -118,6 +123,7 @@ export const useSettingsStore = create<SettingsStore>()(
         bgmDefaultsVersion: 5,
         roomBgmPresets,
         panelsPosition: saved?.panelsPosition ?? null,
+        colorMode: saved?.colorMode === "cool" ? "cool" : "warm",
       };
     } },
   ),

@@ -106,6 +106,10 @@ export function updateGameLayout(layoutConfig: OfficeLayoutConfig): void {
   scene.scene.restart();
 }
 
+export function refreshOfficeTheme(): void {
+  getScene()?.applyColorMode();
+}
+
 export function destroyGame(): void {
   if (resizeHandler) {
     window.removeEventListener("resize", resizeHandler);

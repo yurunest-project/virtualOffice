@@ -12,6 +12,8 @@ function setupPopoutDocument(targetWindow: Window): HTMLElement {
   targetWindow.document.title = "Virtual Office — パネル";
   if (targetWindow.document.documentElement) {
     targetWindow.document.documentElement.lang = "ja";
+    targetWindow.document.documentElement.dataset.colorMode =
+      document.documentElement.dataset.colorMode || "warm";
   }
 
   const sheets = Array.from(
@@ -26,9 +28,10 @@ function setupPopoutDocument(targetWindow: Window): HTMLElement {
     html, body {
       margin: 0;
       padding: 8px;
-      background: #12121f;
-      color: #f0f0f0;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg-deep, #241c18);
+      color: var(--text, #faf3ea);
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+        system-ui, -apple-system, "Segoe UI", sans-serif;
       user-select: none;
       overflow-x: hidden;
     }

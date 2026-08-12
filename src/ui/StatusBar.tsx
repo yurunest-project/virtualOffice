@@ -25,6 +25,7 @@ export function StatusBar({ windowActive }: StatusBarProps) {
     bgmEnabled, setBgmEnabled,
     officeMapVisible, setOfficeMapVisible,
     panelsPopout, setPanelsPopout,
+    colorMode, setColorMode,
   } = useSettingsStore();
   const room = ROOMS[currentRoom];
 
@@ -97,6 +98,15 @@ export function StatusBar({ windowActive }: StatusBarProps) {
       )}
       <span className="status-divider">·</span>
       <TimeHistoryPopover />
+      <span className="status-divider">·</span>
+      <button
+        type="button"
+        className="status-bgm-toggle"
+        onClick={() => setColorMode(colorMode === "warm" ? "cool" : "warm")}
+        title="暖色と寒色を切り替え"
+      >
+        {colorMode === "warm" ? "暖色" : "寒色"}
+      </button>
       <span className="status-divider">·</span>
       <button
         type="button"

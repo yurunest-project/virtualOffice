@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import { Character } from "./Character";
 import { ZONES, getZoneAtPoint, getZoneCenter } from "./zones";
-import { RoomId, ROOMS } from "../store/roomStore";
+import { RoomId } from "../store/roomStore";
 import { useRoomStateStore } from "../store/roomStateStore";
+import { useSettingsStore } from "../store/settingsStore";
+import { getOfficePalette } from "../theme/colorMode";
 import { updateOfficeHitbox } from "../clickthrough/hitbox";
 
 export interface OfficeLayoutConfig {
@@ -135,24 +137,26 @@ export class VirtualOfficeScene extends Phaser.Scene {
       officeHeight,
     );
 
+    const palette = getOfficePalette(useSettingsStore.getState().colorMode);
+
     const bgPanel = this.add.rectangle(
       officeX + officeWidth / 2,
       officeY + officeHeight / 2,
       officeWidth,
       officeHeight,
-      0x1a1a2e,
-      0.88,
+      palette.floor,
+      palette.floorAlpha,
     );
-    bgPanel.setStrokeStyle(3, 0xffffff, 0.45);
+    bgPanel.setStrokeStyle(2, palette.stroke, 0.4);
 
     this.add
       .text(officeX + officeWidth / 2, officeY + 12, "Virtual Office", {
         fontFamily: "system-ui, sans-serif",
         fontSize: "16px",
         fontStyle: "bold",
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 3,
+        color: palette.title,
+        stroke: palette.titleStroke,
+        strokeThickness: 2,
       })
       .setOrigin(0.5, 0);
 
@@ -161,17 +165,25 @@ export class VirtualOfficeScene extends Phaser.Scene {
       const zy = officeY + zone.y * officeHeight;
       const zw = zone.width * officeWidth;
       const zh = zone.height * officeHeight;
+      const zonePalette = palette.zones[zone.id];
 
       this.add
-        .rectangle(zx + zw / 2, zy + zh / 2, zw - 8, zh - 8, zone.color, zone.alpha)
-        .setStrokeStyle(1, 0xffffff, 0.3);
+        .rectangle(
+          zx + zw / 2,
+          zy + zh / 2,
+          zw - 8,
+          zh - 8,
+          zonePalette.color,
+          zonePalette.alpha,
+        )
+        .setStrokeStyle(1, palette.zoneStroke, 0.28);
 
       this.add
         .text(zx + zw / 2, zy + 16, zone.label, {
           fontFamily: "system-ui, sans-serif",
           fontSize: "14px",
-          color: "#ffffff",
-          stroke: "#000000",
+          color: palette.title,
+          stroke: palette.titleStroke,
           strokeThickness: 2,
         })
         .setOrigin(0.5, 0);
@@ -186,8 +198,8 @@ export class VirtualOfficeScene extends Phaser.Scene {
       officeY + 10,
       divider1X,
       officeY + officeHeight - 10,
-      0xffffff,
-      0.15,
+      palette.divider,
+      0.18,
     );
     this.add.line(
       0,
@@ -196,24 +208,30 @@ export class VirtualOfficeScene extends Phaser.Scene {
       officeY + 10,
       divider2X,
       officeY + officeHeight - 10,
-      0xffffff,
-      0.15,
+      palette.divider,
+      0.18,
     );
 
+    const startTint = palette.tints[this.currentZone];
     this.tintOverlay = this.add.rectangle(
       width / 2,
       height / 2,
       width,
       height,
-      ROOMS.work.tintColor,
-      ROOMS.work.tintAlpha,
+      startTint.color,
+      startTint.alpha,
     );
     this.tintOverlay.setDepth(-1);
 
     const startX = officeX + officeWidth * 0.16;
     const startY = officeY + officeHeight * 0.5;
-    this.character = new Character(this, startX, startY);
-    this.currentZone = "work";
+    this.character = new Character(
+      this,
+      startX,
+      startY,
+      palette.characterBody,
+      palette.characterHead,
+    );
   }
 
   update(_time: number, delta: number): void {
@@ -226,8 +244,23 @@ export class VirtualOfficeScene extends Phaser.Scene {
     }
   }
 
+  applyColorMode(): void {
+    if (!this.character || !this.officeBounds) {
+      this.rebuildOffice();
+      return;
+    }
+
+    const { x, y } = this.character.getPosition();
+    const zone = this.currentZone;
+    this.rebuildOffice();
+    this.character.setPosition(x, y);
+    this.currentZone = zone;
+    this.applyRoomTint(zone);
+  }
+
   private applyRoomTint(room: RoomId): void {
-    const config = ROOMS[room];
-    this.tintOverlay.setFillStyle(config.tintColor, config.tintAlpha);
+    const palette = getOfficePalette(useSettingsStore.getState().colorMode);
+    const tint = palette.tints[room];
+    this.tintOverlay.setFillStyle(tint.color, tint.alpha);
   }
 }

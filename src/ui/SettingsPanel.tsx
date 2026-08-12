@@ -53,6 +53,29 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
         </div>
 
         <section>
+          <h3>配色</h3>
+          <div className="color-mode-toggle" role="group" aria-label="配色">
+            <button
+              type="button"
+              className={settings.colorMode === "warm" ? "active" : "secondary"}
+              onClick={() => settings.setColorMode("warm")}
+            >
+              暖色
+            </button>
+            <button
+              type="button"
+              className={settings.colorMode === "cool" ? "active" : "secondary"}
+              onClick={() => settings.setColorMode("cool")}
+            >
+              寒色
+            </button>
+          </div>
+          <p className="muted small">
+            暖色はカフェのようなやさしい色、寒色はこれまでの落ち着いた青系です。
+          </p>
+        </section>
+
+        <section>
           <h3>表示</h3>
           <label className="setting-row">
             <span>オフィス高さ</span>

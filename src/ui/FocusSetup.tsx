@@ -1,5 +1,5 @@
+import { isTauri } from "@tauri-apps/api/core";
 import { useSettingsStore } from "../store/settingsStore";
-import { checkShortcutsAvailable } from "../services/focusService";
 
 interface FocusSetupProps {
   onComplete: () => void;
@@ -8,66 +8,43 @@ interface FocusSetupProps {
 export function FocusSetup({ onComplete }: FocusSetupProps) {
   const settings = useSettingsStore();
 
-  async function handleComplete() {
-    const available = await checkShortcutsAvailable();
-    if (available) {
-      settings.setFocusSetupComplete(true);
-    }
-    settings.setWelcomeDismissed(true);
-    onComplete();
-  }
-
-  function handleSkip() {
+  function dismiss() {
     settings.setWelcomeDismissed(true);
     onComplete();
   }
 
   return (
-    <div className="setup-overlay">
-      <div className="setup-panel panel">
-        <h2>Virtual Office へようこそ</h2>
-        <p>
-          デスクトップ上に半透明のバーチャルオフィスが表示されます。
-          キャラクターを移動して、仕事場・自習室・休憩所を行き来しましょう。
+    <div className="setup-overlay" onClick={dismiss}>
+      <div
+        className="setup-panel panel"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-labelledby="welcome-title"
+      >
+        <h2 id="welcome-title">Virtual Office へようこそ</h2>
+        <p className="setup-lead">
+          仕事場・自習室・休憩所を行き来して、作業時間とタスクを記録できます。
+          データはこのブラウザにだけ保存されます。
         </p>
 
-        <div className="setup-section">
-          <h3>初回セットアップ: 集中モード連携</h3>
-          <p className="muted">
-            仕事場に入ると macOS の Focus モードを ON にできます（任意）。
-            以下のショートカットを「ショートカット」アプリで作成してください。
-          </p>
-          <div className="setup-shortcuts">
-            <div>
-              <strong>{settings.focusOnShortcut}</strong>
-              <span>Work Focus を ON</span>
-            </div>
-            <div>
-              <strong>{settings.focusOffShortcut}</strong>
-              <span>Focus を OFF</span>
-            </div>
-          </div>
-          <ol>
-            <li>ショートカットアプリ → 新規ショートカット</li>
-            <li>「Set Focus」アクションを追加</li>
-            <li>上記の名前で保存</li>
-          </ol>
-        </div>
+        <ul className="help-list">
+          <li>クリック: キャラクターを移動</li>
+          <li>Tab: パネルの表示切替</li>
+          <li>Esc: 設定（あとからいつでも）</li>
+        </ul>
 
-        <div className="setup-section">
-          <h3>操作について</h3>
+        {isTauri() && (
           <p className="muted">
-            Virtual Office のウィンドウ（またはブラウザタブ）内をクリックしてキャラクターを移動します。
-            別のアプリやタブに切り替えても BGM と部屋モードは継続します。
+            macOS の集中モード連携は、Esc → 設定から後でできます。
           </p>
-        </div>
+        )}
 
         <div className="panel-actions setup-actions">
-          <button type="button" onClick={handleComplete}>
-            セットアップ完了
+          <button type="button" className="secondary" onClick={dismiss}>
+            スキップ
           </button>
-          <button type="button" className="secondary" onClick={handleSkip}>
-            スキップ（後で設定）
+          <button type="button" autoFocus onClick={dismiss}>
+            はじめる
           </button>
         </div>
       </div>
